@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by implied value</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+<div class="head-text">
+<h1>Token Radar</h1>
+<p class="tagline">What would a protocol&rsquo;s token be worth if it launched today &mdash; and how would you farm it?</p>
+</div>
+<div class="pills"><span id="pill-model"></span><span id="pill-asof"></span><span id="pill-source"></span></div>
+</header>
+
+<section class="stats" id="stats" aria-label="Coverage"></section>
+
+<nav class="tabs" aria-label="Views">
+<button data-tab="board" class="active" type="button">Board</button>
+<button data-tab="live" type="button">Live tokens</button>
+<button data-tab="sandbox" type="button">Sandbox</button>
+<button data-tab="method" type="button">Methodology</button>
+<button id="palette-btn" class="palette-btn" type="button">Search&nbsp;&nbsp;Ctrl+K</button>
+</nav>
+
+<main>
+<section id="tab-board" class="tab active">
+<div class="strip" id="strip" aria-label="Top categories by implied value"></div>
+<div class="controls">
+<input id="search" type="search" placeholder="Search name, category or chain&hellip;" aria-label="Search">
+<select id="filter-cat" aria-label="Filter by category"><option value="">All categories</option></select>
+<select id="filter-chain" aria-label="Filter by chain"><option value="">All chains</option></select>
+<label class="check"><input id="filter-watch" type="checkbox"> Watchlist only</label>
+<select id="sort" aria-label="Sort by">
+<option value="implied">Sort: implied value</option>
+<option value="tvl">Sort: TVL</option>
+<option value="change">Sort: 7-day change</option>
+<option value="age">Sort: age</option>
+<option value="name">Sort: name</option>
+</select>
+<button id="export-btn" type="button">Export CSV</button>
+<button id="compare-btn" type="button" disabled>Compare</button>
+<span id="pin-count"></span>
+</div>
+<p id="count" class="count"></p>
+<table id="board-table">
+<thead><tr>
+<th data-sort="rank">#</th><th>Pin</th><th>Compare</th>
+<th data-sort="name">Protocol</th><th data-sort="tvl">TVL</th><th data-sort="change">7d</th>
+<th data-sort="age">Age</th><th data-sort="implied">Implied value</th><th>Token</th>
+</tr></thead>
+<tbody id="rows"></tbody>
+</table>
+<p class="hint">Click a row (not its pin or checkbox) to open the detail drawer with the model, the farm plan and the evidence. Pinned rows stay on top. Press Ctrl/&#8984;K to search the board.</p>
+</section>
+
+<section id="tab-live" class="tab">
+<p class="intro">These tokens already trade, so the board never scores them &mdash; it learns from them. Each row&rsquo;s market-cap/TVL ratio is one vote for its category&rsquo;s multiple: a category with at least three live tokens gets its own median, shrunk toward the global median with a prior of 3. A category with fewer borrows the global median instead.</p>
+<table id="live-table">
+<thead><tr><th>#</th><th>Protocol</th><th>TVL</th><th>Market cap</th><th>mcap / TVL</th></tr></thead>
+<tbody id="live-rows"></tbody>
+</table>
+</section>
+
+<section id="tab-sandbox" class="tab">
+<p class="intro">Change the inputs and watch the implied value move. The knobs start at the protocol&rsquo;s own numbers, so the what-if starts exactly at its official value.</p>
+<div class="sandbox">
+<label>Protocol <select id="sb-proto"></select></label>
+<label>Category multiple <input id="sb-mult" type="number" min="0.02" max="1" step="0.001"> <span class="knob-hint">0.02&ndash;1</span></label>
+<label>7-day growth (%) <input id="sb-growth" type="number" min="-50" max="100" step="0.1"> <span class="knob-hint">&minus;50&ndash;100</span></label>
+<label>Age (days) <input id="sb-age" type="range" min="0" max="1095" step="1"> <output id="sb-age-out"></output></label>
+<label>Chains <input id="sb-chains" type="range" min="1" max="5" step="1"> <output id="sb-chains-out"></output></label>
+</div>
+<div class="sb-result" id="sb-result"></div>
+</section>
+
+<section id="tab-method" class="tab">
+<h2>How the radar works</h2>
+<div id="method-body"></div>
+<h2>Category multiples</h2>
+<table id="mult-table">
+<thead><tr><th>Category</th><th>Live tokens</th><th>Live median</th><th>Multiple used</th></tr></thead>
+<tbody id="mult-rows"></tbody>
+</table>
+<h2>Honesty notes</h2>
+<ul class="honest">
+<li>The board says a protocol has &ldquo;no token on record&rdquo; &mdash; that is what the snapshot records, not proof it has no token. A token could exist under a name the snapshot does not carry.</li>
+<li>An implied value is the model&rsquo;s claim, not a promise: it is TVL times a market multiple, adjusted for growth, maturity and chains. Markets can disagree by a lot.</li>
+<li>Live tokens are kept apart on purpose. Their prices are the market&rsquo;s own values; mixing them into the ranking would let traded tokens set the answer they are meant to evidence.</li>
+<li>Liquid-staking and liquid-restaking protocols are ranked: their categories have launched tokens before. Bridges are excluded: a bridge moves other tokens, it does not wait for its own launch.</li>
+</ul>
+<p class="source-line" id="source-line"></p>
+</section>
+</main>
+
+<footer>
+<p>Token Radar ranks pre-token protocols by an implied launch value and gives each one a seven-step farm plan. The model is stated in full under Methodology; the numbers come from a frozen snapshot, not from a live feed.</p>
+<p class="warn">Nothing here is investment advice. Farming a protocol does not guarantee an airdrop, and a token that launches can be worth far less than the model claims &mdash; or nothing at all. Never pay anyone to claim for you.</p>
+</footer>
+
+<div id="backdrop" hidden></div>
+<aside id="drawer" aria-label="Protocol detail" hidden>
+<button id="drawer-close" type="button" aria-label="Close detail">&times;</button>
+<h2 id="drawer-title"></h2>
+<p id="drawer-sub" class="sub"></p>
+<nav class="drawer-tabs">
+<button data-dtab="model" class="active" type="button">Model</button>
+<button data-dtab="farm" type="button">Farm plan</button>
+<button data-dtab="evidence" type="button">Evidence</button>
+</nav>
+<div id="drawer-body"></div>
+</aside>
+
+<div id="compare-modal" role="dialog" aria-label="Compare protocols" hidden>
+<button id="compare-close" type="button" aria-label="Close compare">&times;</button>
+<h2>Compare</h2>
+<div id="compare-body"></div>
+</div>
+
+<div id="palette" hidden>
+<input id="palette-input" type="text" placeholder="Search protocols or type an action&hellip;" aria-label="Command palette">
+<div id="palette-list"></div>
+</div>
+
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
