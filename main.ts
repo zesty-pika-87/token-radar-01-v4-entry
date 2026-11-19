@@ -98,6 +98,12 @@ if (dossier.length > DOSSIER_MAX_BYTES) {
   process.stderr.write(`token radar: dossier.json is ${dossier.length} bytes, over the 1.5 MiB the gate allows\n`);
   process.exit(1);
 }
+// Read the dossier back and check it is the document the scorer expects.
+const dossierBack = JSON.parse(readFileSync(join(out, 'dossier.json'), 'utf8')) as { schema?: unknown; images?: unknown[] };
+if (dossierBack.schema !== 'makefun/dossier/v1' || !Array.isArray(dossierBack.images) || dossierBack.images.length !== shots.length) {
+  process.stderr.write('token radar: dossier.json failed its read-back check\n');
+  process.exit(1);
+}
 
 const first = board[0]!;
 const last = board[board.length - 1]!;
@@ -105,5 +111,5 @@ const sizes = ['board.json', 'data.js', 'dossier.json'].map((f) => `${f} ${statS
 process.stdout.write(
   `token radar: ${snapshot.protocols.length} protocols, ${snapshot.watchlist.length} on the watchlist, ${board.length} rows scored (${radar.early_size} early, ${radar.live_size} live set aside)\n` +
     `token radar: rank 1 ${first.name} ${dollars(first.implied_value_usd)}, rank ${last.rank} ${last.name} ${dollars(last.implied_value_usd)}\n` +
-    `token radar: wrote ${join(out, 'board.json')}, ${join(out, 'data.js')}, ${join(out, 'dashboard')} (${dashFiles.length} files), ${join(out, 'screenshots')} (${shots.length} images) and ${join(out, 'dossier.json')} (${sizes})\n`,
+    `token radar: wrote ${join(out, 'board.json')}, ${join(out, 'data.js')}, ${join(out, 'dashboard')} (${dashFiles.length} files), ${join(out, 'screenshots')} (${shots.length} images) and ${join(out, 'dossier.json')} (${sizes}; dossier ${dossier.length} bytes, ${dossierBack.images!.length} images, read back OK)\n`,
 );
